@@ -128,20 +128,21 @@ app.get("/purchases", function (req, res) {
     let { product = "", shop = "" } = req.query;
     if(product || shop){
         fs.readFile(fname,"utf8",function(err,data){
-            if(err) req.status(400).send(err);
+            if(err) res.status(400).send(err);
             else{
                 let arr1 = [];
                 let arr = JSON.parse(data);
                 if (product) {
                     let ar = product.split(",");
-                    arr1  = arr.purchases.filter((ele)=> ar.findIndex((st)=> +st === +ele.productid)>=0)
+                    arr1  = arr.purchases.filter((ele)=> ar.findIndex((st)=> +st[2] === +ele.productid)>=0)
                 }
-                if (shop) {
-                    if(arr1){
-                        arr1 = arr1.filter((ele)=> +ele.shopId === +shop)
+                if(shop) {
+                    if(arr1.length>0){
+                        arr1 = arr1.filter((ele)=> +ele.shopId === +shop[2])
                     }
+                    
                     else{
-                        arr1 = arr.purchases.filter((ele)=> +ele.shopId === +shop)
+                        arr1 = arr.purchases.filter((ele)=> +ele.shopId === +shop[2])
                     }
                 }
                 res.send(arr1);
@@ -150,13 +151,86 @@ app.get("/purchases", function (req, res) {
     }
     else{
         fs.readFile(fname,"utf8",function(err,data){
-            if(err) req.status(400).send(err);
+            if(err) res.status(400).send(err);
             else{
                 let arr = JSON.parse(data)
                 res.send(arr.purchases);
             }
         })
     }
+});
+
+app.get("/parchases/shop/:id",function(req,res){
+    let id = req.params.id;
+    fs.readFile(fname,"utf8",function(err,data){
+        if(err) res.status(400).send(err);
+        else{
+            let arr = JSON.parse(data)
+            let ar = arr.purchases.filter((ele)=>+ele.shopId === +id)
+            console.log(ar)
+            res.send(ar);
+        }
+    })
+})
+
+app.get("/parchases/product/:id",function(req,res){
+    let id = req.params.id;
+    fs.readFile(fname,"utf8",function(err,data){
+        if(err) res.status(400).send(err);
+        else{
+            let arr = JSON.parse(data)
+            let ar = arr.purchases.filter((ele)=>+ele.productid === +id)
+            console.log(ar)
+            res.send(ar);
+        }
+    })
+})
+
+app.get("/totalPurchase/shop/:id", function (req, res, next) {
+    let id = req.params.id;
+    fs.readFile(fname,"utf8",function(err,data){
+        if(err) res.status(400).send(err);
+        else{
+            let arr = JSON.parse(data)
+            let ar = arr.purchases.filter((ele)=>+ele.shopId === +id)
+            let ar1 = ar.reduce((acc,cur)=>{
+                let index = acc.findIndex((ele)=> +ele.productid === +cur.productid);
+                if(index>=0){
+                    acc[index].quantity += cur.quantity;
+                }
+                else{
+                    acc.push(cur);
+                }
+                return acc;
+                console.log(acc);
+            },[])
+            console.log(ar1);
+            res.send(ar1);
+        }
+    })
+});
+
+app.get("/totalPurchase/product/:id", function (req, res, next) {
+    let id = req.params.id;
+    fs.readFile(fname,"utf8",function(err,data){
+        if(err) res.status(400).send(err);
+        else{
+            let arr = JSON.parse(data)
+            let ar = arr.purchases.filter((ele)=>+ele.productid === +id)
+            let ar1 = ar.reduce((acc,cur)=>{
+                let index = acc.findIndex((ele)=> +ele.shopId === +cur.shopId);
+                if(index>=0){
+                    acc[index].quantity += cur.quantity;
+                }
+                else{
+                    acc.push(cur);
+                }
+                return acc
+            },[])
+            console.log(ar1);
+            res.send(ar1);
+        }
+    })
 });
 
 app.post("/purchases", function (req, res) {
