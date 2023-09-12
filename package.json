@@ -1,0 +1,17 @@
+{
+  "name": "fl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fileApi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node fileApi.js"
+  },
+  "keywords": ["node","build"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security"
+  }
+}
